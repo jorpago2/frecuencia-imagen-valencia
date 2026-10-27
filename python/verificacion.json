@@ -1,0 +1,20 @@
+{
+  "estado": "correcto",
+  "rechazo_didactico_dB": 40.0,
+  "tono_AM_recuperado_Hz": 700.0,
+  "relacion_amplitud_AM": 1.0011231012190513,
+  "comprobaciones": [
+    "plan de frecuencias",
+    "audios válidos y sin recorte",
+    "rechazo 40 dB sin cambiar piloto",
+    "detector AM sin imagen",
+    "cambio de fuente sin reinicio",
+    "pausa y bucle",
+    "rechazo de WAV silencioso",
+    "lectura estéreo",
+    "salida inicial de altavoces",
+    "salida estéreo en ambos canales",
+    "cambio de dispositivo sin reinicio"
+  ],
+  "escucha_humana": "no realizada"
+}

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Escucha el efecto de la frecuencia imagen con Valencia APP y Radio MARCA. Laboratorio interactivo de receptores superheterodinos.">
+  <title>Frecuencia imagen · Laboratorio sonoro</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230e3038'/%3E%3Cpath d='M12 44V30m20 14V12m20 32V30' stroke='%23eaa15f' stroke-width='5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+<a class="skip" href="#laboratorio">Ir al laboratorio</a>
+<header class="topbar wrap">
+  <a class="brand" href="#"><span class="brand-mark" aria-hidden="true">ıIı</span> CSAF <span class="brand-separator">/</span> Laboratorio de receptores</a>
+  <nav aria-label="Secciones"><a href="#explicacion">Entender el efecto</a><a href="#fuentes">Fuentes</a><a href="https://github.com/jorpago2/frecuencia-imagen-valencia">Código ↗</a></nav>
+</header>
+<main class="wrap">
+  <section class="intro">
+    <div><p class="eyebrow">TEMA 4 · CONVERSIÓN DE FRECUENCIA</p><h1>Dos señales.<br>Una misma <em>FI.</em></h1></div>
+    <div class="intro-copy"><p>Quieres escuchar a un piloto que se aproxima a Valencia. Pero una emisora deportiva también puede convertirse a la frecuencia que espera tu receptor.</p><p class="muted">Escucha la imagen. Activa el filtro. Compara.</p></div>
+  </section>
+
+  <section id="laboratorio" class="lab" aria-labelledby="lab-title">
+    <div class="lab-header"><div><p class="eyebrow">01 / EXPERIMENTA</p><h2 id="lab-title">La imagen se escucha</h2></div><span id="filter-badge" class="badge">IMAGEN SIN RECHAZAR</span></div>
+    <div class="lab-columns">
+      <div class="listening">
+        <div class="scope"><canvas id="waveform" aria-label="Forma de onda del audio de salida"></canvas><span id="signal-label">Salida de audio</span><span class="scope-mark">AUDIO / t</span></div>
+        <div class="transport"><button id="play" class="play" type="button">▶ Reproducir</button><button id="restart" class="subtle" type="button" aria-label="Volver al inicio">↶ Inicio</button><output id="clock">00:00 / 00:24</output></div>
+        <p id="audio-status" class="audio-status" role="status" aria-live="polite">Pulsa Reproducir para activar el audio del navegador.</p>
+        <div class="source-options" role="group" aria-label="Fuentes de audio">
+          <button class="source selected" data-source="ambas" aria-pressed="true" type="button">Ambas señales</button><button class="source" data-source="piloto" aria-pressed="false" type="button">Solo piloto</button><button class="source" data-source="radio" aria-pressed="false" type="button">Solo Radio MARCA</button>
+        </div>
+        <div class="volume"><label for="volume">Volumen</label><input id="volume" type="range" min="0" max="100" value="75"><output id="volume-value" for="volume">75 %</output><span id="level" class="level" role="meter" aria-label="Nivel de audio" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-60">−∞ dBFS</span></div>
+      </div>
+      <div class="settings">
+        <label class="control-label" for="mode">Qué quieres escuchar</label><select id="mode"><option value="didactico">Superposición didáctica</option><option value="fisico">Receptor AM · modelo</option></select>
+        <p id="mode-description">Dos audios reconocibles para escuchar cómo la imagen contamina la señal deseada. Es una analogía, no una demodulación AM de la emisora FM.</p>
+        <button id="filter" type="button" class="filter" aria-pressed="false"><span class="switch" aria-hidden="true"></span><span>Filtro de rechazo de imagen<strong id="filter-state">Desactivado</strong></span></button>
+        <div class="filter-data"><span>Rechazo al activarlo<strong>40 dB</strong></span><span>Amplitud residual<strong>1 / 100</strong></span></div>
+        <p id="filter-note" class="small">Se aplica antes del mezclador. Al conmutar se conserva el instante de escucha y la ganancia del piloto.</p>
+      </div>
+    </div>
+    <details class="native-audio"><summary>Escuchar las fuentes con el reproductor convencional del navegador</summary><div class="native-grid"><div><label for="pilot-native">Piloto · voz TTS ficticia</label><audio id="pilot-native" controls preload="none" src="assets/piloto.mp3"></audio></div><div><label for="radio-native">Radio MARCA Valencia · fragmento real</label><audio id="radio-native" controls preload="none" src="assets/radio.mp3"></audio></div></div><p class="small">Estas escuchas son independientes del filtro. Detén la demostración antes de usarlas.</p></details>
+  </section>
+
+  <section class="frequency-section" aria-labelledby="plan-title">
+    <div class="section-heading"><p class="eyebrow">02 / SIGUE LAS FRECUENCIAS</p><h2 id="plan-title">La simetría respecto al oscilador es la clave</h2></div>
+    <div class="frequency-plot" role="img" aria-label="Radio MARCA 98,7 MHz y Valencia APP 120,1 MHz están ambas a 10,7 MHz del oscilador local de 109,4 MHz. Esquema con alturas arbitrarias.">
+      <div class="frequency-axis"></div><div class="freq image"><span class="freq-kind">IMAGEN</span><strong>98,7 <small>MHz</small></strong><i id="image-bar"></i><span>Radio MARCA · FM</span></div><div class="freq lo"><span class="freq-kind">OSCILADOR LOCAL</span><strong>109,4 <small>MHz</small></strong><i></i><span>Referencia del mezclador</span></div><div class="freq desired"><span class="freq-kind">RF DESEADA</span><strong>120,1 <small>MHz</small></strong><i></i><span>Valencia APP · AM</span></div>
+      <div class="distance first">← 10,7 MHz →</div><div class="distance second">← 10,7 MHz →</div>
+    </div>
+    <div class="conversion"><p><span class="image-text">|98,7 − 109,4|</span><b>=</b><span class="desired-text">|120,1 − 109,4|</span><b>=</b><strong>10,7 MHz</strong></p><span>Dos bandas de entrada coinciden en el mismo centro de FI.</span></div>
+    <p class="caption">Receptor docente con inyección baja. Alturas arbitrarias; no son potencias medidas.</p>
+  </section>
+
+  <section id="explicacion" class="explanation" aria-labelledby="why-title">
+    <div class="section-heading"><p class="eyebrow">03 / ENTIENDE EL RECEPTOR</p><h2 id="why-title">¿De dónde sale la frecuencia imagen?</h2></div>
+    <div class="explanation-grid"><div class="prose"><p>El mezclador multiplica la señal recibida por el oscilador local. Para dos cosenos, el producto contiene una frecuencia suma y otra diferencia:</p><div class="equation">cos(2πf<sub>RF</sub>t) cos(2πf<sub>OL</sub>t)<br><span>= ½ cos[2π(f<sub>RF</sub> − f<sub>OL</sub>)t]<br>+ ½ cos[2π(f<sub>RF</sub> + f<sub>OL</sub>)t]</span></div><p>El canal de FI selecciona el producto diferencia. Su frecuencia central es <strong>|f<sub>entrada</sub> − f<sub>OL</sub>|</strong>: una frecuencia por encima del oscilador y su simétrica por debajo producen el mismo valor.</p><p>Aquí, el piloto está por encima de 109,4 MHz y Radio MARCA por debajo. La imagen aparece en:</p><div class="equation compact">f<sub>img</sub> = f<sub>RF</sub> − 2f<sub>FI</sub><br><span>120,1 − 2 × 10,7 = <b>98,7 MHz</b></span></div></div>
+    <aside class="signal-chain"><h3>Dónde debe actuar el filtro</h3><div class="chain-step"><span class="step-number">1</span><div><strong>Antena y preselector RF</strong><p>Deja pasar 120,1 MHz y atenúa 98,7 MHz. Aquí actúa el interruptor de esta demo.</p></div></div><div class="chain-step"><span class="step-number">2</span><div><strong>Mezclador + OL a 109,4 MHz</strong><p>Las dos portadoras llegan al centro de FI de 10,7 MHz.</p></div></div><div class="chain-step"><span class="step-number">3</span><div><strong>Filtro de canal en FI</strong><p>Selecciona la banda de trabajo. Ya no puede eliminar toda la imagen sin afectar al canal deseado.</p></div></div><div class="chain-step"><span class="step-number">4</span><div><strong>Detector AM y audio</strong><p>Recupera la voz; la imagen que haya sobrevivido puede deteriorarla.</p></div></div></aside></div>
+  </section>
+
+  <section class="amfm" aria-labelledby="amfm-title"><div><p class="eyebrow">04 / EL MATIZ IMPORTANTE</p><h2 id="amfm-title">Misma FI no significa<br>el mismo tipo de sonido.</h2></div><div class="prose"><p><strong>El piloto transmite en AM. Radio MARCA transmite en FM.</strong> Una suma de sus voces permite reconocer la interferencia, pero no reproduce por sí sola un receptor aeronáutico.</p><p>En <b>Superposición didáctica</b> escuchas ambas fuentes limpias. En <b>Receptor AM · modelo</b>, el piloto modula la amplitud y Radio MARCA modula la frecuencia. Después se aplican el canal de FI y un detector de envolvente.</p><p>En ese segundo modo, la emisora FM puede convertirse en ruido o distorsión y reducir la inteligibilidad del piloto. <strong>No tiene por qué oírse como la voz limpia del locutor.</strong></p><a class="inline-link" href="#laboratorio">↑ Volver a escuchar los dos modos</a></div></section>
+
+  <section class="questions" aria-labelledby="questions-title"><div class="section-heading"><p class="eyebrow">05 / COMPRUEBA LA IDEA</p><h2 id="questions-title">Tres preguntas para afinar el oído</h2></div>
+    <details><summary>¿40 dB significa que la emisora desaparece por completo?</summary><p>No. El cociente de amplitudes es 10<sup>−40/20</sup> = 0,01 y el de potencias, 10<sup>−40/10</sup> = 0,0001. Queda un residuo. En el modo didáctico, el audio de Radio MARCA baja 40 dB y el piloto mantiene exactamente la misma contribución.</p></details>
+    <details><summary>¿Qué pasa si ahora sintonizo Radio MARCA como señal deseada?</summary><p>Con RF = 98,7 MHz, el mismo OL = 109,4 MHz y la misma FI = 10,7 MHz, la inyección es alta y la imagen pasa a estar en 120,1 MHz: f<sub>img</sub> = f<sub>RF</sub> + 2f<sub>FI</sub>. Los papeles se intercambian. Esta web mantiene la escucha del receptor sintonizado al piloto.</p></details>
+    <details><summary>¿Por qué no basta con estrechar mucho el filtro de FI?</summary><p>Las dos señales están centradas en 10,7 MHz. Sus anchos de banda son distintos y estrechar el canal puede reducir parte de la FM, pero también afecta a la señal útil y no separa las portadoras coincidentes. El preselector RF trabaja cuando todavía están separadas 21,4 MHz. Una arquitectura con rechazo de imagen mediante cuadratura es otra posibilidad.</p></details>
+  </section>
+
+  <section id="fuentes" class="sources" aria-labelledby="sources-title"><div class="section-heading"><p class="eyebrow">06 / HIPÓTESIS Y PROCEDENCIA</p><h2 id="sources-title">Qué está documentado y qué hemos modelado</h2></div>
+    <div class="sources-grid"><div><h3>Frecuencias y voces</h3><ul><li><b>Valencia APP: 120,100 MHz.</b> <a href="https://aip.enaire.es/AIP/contenido_AIP/AD/AD2/LEVC/LE_AD_2_LEVC_es.html">AIP de ENAIRE, LEVC AD 2.18, APP/L ↗</a>.</li><li><b>Radio MARCA Valencia: 98,7 FM.</b> <a href="https://radios.com.es/6484-radio-marca-valencia.html">Directorio de la emisora ↗</a>.</li><li><b>Piloto:</b> diálogo ficticio, voz TTS local de Windows. No es una grabación de comunicaciones aeronáuticas.</li><li><b>Radio:</b> 24 segundos del <a href="https://omny.fm/shows/radio-marca-valencia/directo-marca-valencia-26-10-2026">podcast Directo Marca Valencia del 26/10/2026 ↗</a>, de 00:45 a 01:09. No es una captura RF.</li></ul></div><div><h3>Parámetros de la simulación</h3><dl><div><dt>FI elegida</dt><dd>10,7 MHz</dd></div><div><dt>Canal de FI del modelo AM</dt><dd>12 kHz entre puntos de −3 dB</dd></div><div><dt>Índice de modulación AM</dt><dd>0,65</dd></div><div><dt>Desviación FM máxima</dt><dd>±75 kHz</dd></div><div><dt>Imagen antes del rechazo</dt><dd>+12 dB respecto a portadora AM</dd></div><div><dt>Filtro activado</dt><dd>40 dB de rechazo de imagen</dd></div></dl></div></div>
+    <details class="model-details"><summary>Cómo se calcula el audio y qué límites tiene</summary><p>El modelo AM se calcula en Python como una envolvente compleja equivalente a la FI, con muestreo de 256 kHz: z(t) = 1 + 0,65 p(t) + A<sub>i</sub> 10<sup>−R/20</sup> exp[−jφ<sub>FM</sub>(t)]. La conjugación FM representa la inversión espectral de la imagen, que está por debajo del OL. El filtro de canal es Butterworth de orden 6, equivalente a ±6 kHz; después se toma la envolvente, se remuestrea a 32 kHz y se filtra el audio a 150–3000 Hz.</p><p>El navegador reproduce versiones precalculadas de los dos estados físicos y conmuta con una transición breve. La ganancia es fija dentro de cada pareja con/sin filtro; no se normaliza cada estado por separado. Los modos tienen ganancias distintas: no compares sus volúmenes absolutos como potencias RF. Las fuentes aisladas usan la ganancia del modo didáctico.</p><p>Se omiten ruido térmico, AGC, saturación del frontal, estéreo/RDS y preénfasis FM. El preselector se representa por su transmisión en las dos bandas, no por un circuito RF diseñado. La FI de 10,7 MHz es una hipótesis docente, no la especificación de un receptor aeronáutico concreto.</p><p>La coincidencia calculada <strong>no demuestra una interferencia real observada en Valencia</strong>. El fragmento de Radio MARCA conserva los derechos de sus titulares; no se distribuye con una licencia abierta.</p></details>
+    <p class="caption">Fuentes comprobadas el 27 de octubre de 2026. Audios incluidos para esta demostración docente.</p>
+  </section>
+</main>
+<footer class="wrap"><span>CSAF · Frecuencia imagen · Valencia</span><a href="https://github.com/jorpago2/frecuencia-imagen-valencia">Ver código y modelo Python ↗</a></footer>
+</body>
+</html>
