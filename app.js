@@ -1,9 +1,8 @@
+import { AUDIO_NAMES as names, mixWeights, amplitude } from './audio-model.js';
+import { initSpectra, updateSpectra } from './spectra.js';
 const $ = (id) => document.getElementById(id);
-const names = ['piloto', 'radio', 'didactico_off', 'didactico_on', 'fisico_off', 'fisico_on'];
-const assets = ['piloto', 'radio', 'fisico_off', 'fisico_on'];
 let context, master, analyser, decoded, loading, sources = [], gains = {};
 let playing = false, rejected = false, source = 'ambas', startedAt = 0;
-let activeKey = 'didactico_off';
 const canvas = $('waveform');
 const drawing = canvas.getContext('2d');
 const modeDescriptions = {
@@ -16,17 +15,16 @@ function status(message, error = false) {
   $('audio-status').classList.toggle('error', error);
 }
 
-function selectedKey() {
-  return source === 'ambas' ? `${$('mode').value}_${rejected ? 'on' : 'off'}` : source;
-}
+const rejectionDb = () => rejected ? Number($('rejection').value) : 0;
+const selectedWeights = () => mixWeights($('mode').value, source, rejectionDb());
 
 function updateMix() {
-  activeKey = selectedKey();
-  if (context && gains[activeKey]) {
+  const weights = selectedWeights();
+  if (context && sources.length) {
     for (const name of names) {
       const parameter = gains[name].gain;
       parameter.cancelAndHoldAtTime(context.currentTime);
-      parameter.linearRampToValueAtTime(name === activeKey ? 1 : 0, context.currentTime + .04);
+      parameter.linearRampToValueAtTime(weights[name] || 0, context.currentTime + .04);
     }
   }
   const nativeSource = source !== 'ambas';
@@ -35,6 +33,17 @@ function updateMix() {
     : 'Se aplica antes del mezclador. Al conmutar se conserva el instante de escucha y la ganancia del piloto.';
   $('mode-description').textContent = modeDescriptions[$('mode').value];
   $('signal-label').textContent = source === 'piloto' ? 'Piloto · TTS' : source === 'radio' ? 'Radio MARCA' : 'Salida del receptor';
+  const db = rejectionDb();
+  $('filter').setAttribute('aria-pressed', String(rejected));
+  $('filter-state').textContent = rejected ? `Activado · ${db} dB` : 'Desactivado';
+  $('filter-badge').textContent = db ? `IMAGEN ATENUADA · −${db} dB` : 'IMAGEN SIN RECHAZAR';
+  $('filter-badge').classList.toggle('active', db > 0);
+  $('rejection-value').textContent = `${$('rejection').value} dB`;
+  $('spectrum-rejection').value = db;
+  $('applied-rejection').textContent = `${db} dB`;
+  $('residual').textContent = `${(100 * amplitude(db)).toLocaleString('es-ES', {maximumFractionDigits: 2})} %`;
+  $('image-bar').style.transform = `scaleY(${Math.max(.02, (60 - db) / 60)})`;
+  updateSpectra(db);
 }
 
 function startSources() {
@@ -43,13 +52,14 @@ function startSources() {
   for (const node of Object.values(gains)) node.disconnect();
   gains = {};
   startedAt = context.currentTime + .06;
+  const weights = selectedWeights();
   for (const name of names) {
     const node = context.createBufferSource();
     node.buffer = decoded[name];
     node.loop = true;
     node.loopEnd = 24;
     const gain = context.createGain();
-    gain.gain.value = name === selectedKey() ? 1 : 0;
+    gain.gain.value = weights[name] || 0;
     node.connect(gain).connect(master);
     node.start(startedAt);
     sources.push(node);
@@ -72,7 +82,7 @@ async function prepare() {
   await context.resume();
   if (context.state !== 'running') throw new Error('El navegador no ha activado la salida. Pulsa Reproducir de nuevo.');
   if (!decoded) {
-    loading ||= Promise.all(assets.map(async (name) => {
+    loading ||= Promise.all(names.map(async (name) => {
       const response = await fetch(new URL(`assets/${name}.mp3`, import.meta.url));
       if (!response.ok) throw new Error(`No se ha podido cargar ${name} (${response.status}).`);
       const buffer = await context.decodeAudioData(await response.arrayBuffer());
@@ -80,17 +90,6 @@ async function prepare() {
       return [name, buffer];
     })).then((entries) => Object.fromEntries(entries)).catch((error) => { loading = null; throw error; });
     decoded = await loading;
-    // Mezclar las mismas fuentes decodificadas conserva exactamente los 40 dB.
-    for (const state of ['off', 'on']) {
-      const length = Math.min(decoded.piloto.length, decoded.radio.length);
-      const buffer = context.createBuffer(1, length, context.sampleRate);
-      const output = buffer.getChannelData(0);
-      const pilot = decoded.piloto.getChannelData(0);
-      const radio = decoded.radio.getChannelData(0);
-      const imageGain = .9 * (state === 'on' ? .01 : 1);
-      for (let i = 0; i < length; i++) output[i] = pilot[i] + imageGain * radio[i];
-      decoded[`didactico_${state}`] = buffer;
-    }
     startSources();
   }
 }
@@ -121,11 +120,12 @@ $('play').addEventListener('click', async () => {
 
 $('filter').addEventListener('click', () => {
   rejected = !rejected;
-  $('filter').setAttribute('aria-pressed', String(rejected));
-  $('filter-state').textContent = rejected ? 'Activado · 40 dB' : 'Desactivado';
-  $('filter-badge').textContent = rejected ? 'IMAGEN ATENUADA · −40 dB' : 'IMAGEN SIN RECHAZAR';
-  $('filter-badge').classList.toggle('active', rejected);
-  $('image-bar').classList.toggle('rejected', rejected);
+  updateMix();
+});
+$('rejection').addEventListener('input', () => { rejected = true; updateMix(); });
+$('spectrum-rejection').addEventListener('input', () => {
+  $('rejection').value = $('spectrum-rejection').value;
+  rejected = true;
   updateMix();
 });
 $('mode').addEventListener('change', updateMix);
@@ -195,3 +195,5 @@ function render(time) {
   }
 }
 requestAnimationFrame(render);
+initSpectra();
+updateMix();
